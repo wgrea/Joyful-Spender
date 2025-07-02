@@ -4,12 +4,20 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Target, Plus } from 'lucide-react'
+import { Target, Plus, Trophy, Star } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { format } from 'date-fns'
 
 export function SavingsGoals() {
   const { savingsGoals, setShowGoalModal } = useAppStore()
+
+  const getMilestoneMessage = (progress: number) => {
+    if (progress >= 100) return { message: "🎉 Goal achieved! Amazing work!", icon: Trophy, color: "text-yellow-500" }
+    if (progress >= 75) return { message: "🔥 Almost there! You've got this!", icon: Star, color: "text-orange-500" }
+    if (progress >= 50) return { message: "💪 Halfway there! Keep it up!", icon: Target, color: "text-blue-500" }
+    if (progress >= 25) return { message: "🌱 Great start! Building momentum!", icon: Plus, color: "text-green-500" }
+    return null
+  }
 
   return (
     <Card className="border-0 shadow-lg">
@@ -45,7 +53,8 @@ export function SavingsGoals() {
         ) : (
           <div className="space-y-4">
             {savingsGoals.map((goal, index) => {
-              const progress = (goal.currentAmount / goal.targetAmount) * 100
+              const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100)
+              const milestone = getMilestoneMessage(progress)
               
               return (
                 <motion.div
@@ -55,14 +64,36 @@ export function SavingsGoals() {
                   transition={{ delay: index * 0.1 }}
                   className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border border-green-100"
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <h4 className="font-semibold text-gray-900">{goal.title}</h4>
-                    <span className="text-sm font-medium text-green-600">
+                    <motion.span 
+                      className="text-sm font-medium text-green-600"
+                      animate={progress >= 100 ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.5, repeat: progress >= 100 ? Infinity : 0 }}
+                    >
                       {progress.toFixed(0)}%
-                    </span>
+                    </motion.span>
                   </div>
-                  <Progress value={progress} className="mb-2" />
-                  <div className="flex items-center justify-between text-sm text-gray-600">
+                  
+                  <div className="mb-3">
+                    <Progress 
+                      value={progress} 
+                      className="h-3"
+                    />
+                  </div>
+                  
+                  {milestone && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`flex items-center gap-2 mb-2 text-sm ${milestone.color}`}
+                    >
+                      <milestone.icon className="w-4 h-4" />
+                      <span className="font-medium">{milestone.message}</span>
+                    </motion.div>
+                  )}
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                     <span>
                       ${goal.currentAmount.toFixed(2)} of ${goal.targetAmount.toFixed(2)}
                     </span>
@@ -72,8 +103,9 @@ export function SavingsGoals() {
                       </span>
                     )}
                   </div>
+                  
                   {goal.description && (
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 mt-2 italic">
                       {goal.description}
                     </p>
                   )}

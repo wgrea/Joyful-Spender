@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Plus, Target, PiggyBank } from 'lucide-react'
+import { Plus, Target } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 
 interface DashboardHeaderProps {
